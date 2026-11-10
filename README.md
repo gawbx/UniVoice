@@ -113,41 +113,11 @@ To develop a Java-based application that will centralize, organize, and streamli
 
 ### Steps
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/gawbx/UniVoice.git
-   cd UniVoice
-   ```
-
-2. **Compile the source files**
-   ```bash
-   javac *.java
-   ```
-   *(If your files are inside a `src/` folder, use `javac src/*.java` instead.)*
-
-3. **Run the program**
-   ```bash
-   java CampusTracker
-   ```
-
-4. **Using the system**
-   - When asked *"Administrator?"*, answer **No** to submit feedback, or **Yes** to log in as an admin (3 password attempts allowed).
-   - As a user, enter your SR-Code, pick a department, choose Suggestion or Complaint, and type your message. Keep your **Record ID**.
-   - As an admin, use the admin menu to view, filter, search, update, and delete records.
-
-> Records are saved automatically to a text file, so they remain available the next time you run the program.
+(IN PROGRESS)
 
 ## 11. Sample Screenshots
 
-> Replace the image paths below with your actual screenshots (for example, in a `screenshots/` folder).
-
-| Home / Role Selection | Submit Feedback |
-|---|---|
-| ![Home screen](screenshots/home.png) | ![Submit feedback](screenshots/submit-feedback.png) |
-
-| Admin Menu | View / Search Records |
-|---|---|
-| ![Admin menu](screenshots/admin-menu.png) | ![View records](screenshots/view-records.png) |
+(IN PROGRESS)
 
 ## 12. Known Limitations
 
