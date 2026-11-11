@@ -67,6 +67,7 @@ To develop a Java-based application that will centralize, organize, and streamli
 
 - **Language:** Java
 - **Data storage:** Plain text file (file I/O)
+- **GUI:** Java Swing (custom coffee-palette theme)
 - **Core Java features:** `ArrayList`, arrays, `Scanner`, exception handling
 - **Version control:** Git and GitHub
 
@@ -106,22 +107,62 @@ To develop a Java-based application that will centralize, organize, and streamli
 
 ## 10. Instructions for Running the Program
 
-### Requirements
+### Project structure
 
-- Java Development Kit (JDK) 11 or higher
-- Git (optional, for cloning)
+```
+UniVoice/
+├── src/univoice/
+│   ├── CampusTracker.java        # main class (GUI by default, --console for text mode)
+│   ├── model/                    # Feedback (abstract), Suggestion, Complaint, Status, FeedbackFactory
+│   ├── service/                  # FeedbackManager, AdminAuth, Validator
+│   └── ui/                       # Swing GUI in a coffee color palette
+├── data/                         # feedback.txt is created here automatically
+├── run.sh                        # compile + run script for macOS / Linux
+└── README.md
+```
 
-### Steps
+### Run on macOS
 
-(IN PROGRESS)
+1. **Install a JDK** (skip if `javac -version` already works in Terminal):
+   ```bash
+   brew install --cask temurin
+   ```
+   No Homebrew? Download the macOS installer from https://adoptium.net instead.
+2. **Open Terminal and go to the project folder:**
+   ```bash
+   cd path/to/UniVoice
+   ```
+3. **Run it:**
+   ```bash
+   ./run.sh              # GUI
+   ./run.sh --console    # console version
+   ```
+   If you get "permission denied", run `chmod +x run.sh` once.
+
+Manual alternative:
+```bash
+mkdir -p out
+javac -d out $(find src -name "*.java")
+java -cp out univoice.CampusTracker
+```
+
+**Admin password:** `admin123` (3 attempts). It is private inside `service/AdminAuth.java`.
 
 ## 11. Sample Screenshots
 
-(IN PROGRESS)
+> Replace the image paths below with your actual screenshots (for example, in a `screenshots/` folder).
+
+| Home / Role Selection | Submit Feedback |
+|---|---|
+| ![Home screen](screenshots/home.png) | ![Submit feedback](screenshots/submit-feedback.png) |
+
+| Admin Menu | View / Search Records |
+|---|---|
+| ![Admin menu](screenshots/admin-menu.png) | ![View records](screenshots/view-records.png) |
 
 ## 12. Known Limitations
 
-- The system runs in the console only. It has no graphical, web, or mobile interface.
+- The system is a desktop app (Java Swing GUI plus a console mode). It has no web or mobile interface.
 - There is a single shared administrator password. Individual admin accounts and password changes are not supported.
 - SR-Codes are checked for format only, not verified against the university's student database.
 - Users cannot view, edit, or track the status of their own submissions. They only receive a Record ID.
@@ -132,7 +173,7 @@ To develop a Java-based application that will centralize, organize, and streamli
 
 ## 13. Future Improvements
 
-- Graphical, web, or mobile interface
+- Web or mobile version
 - Individual admin accounts with changeable passwords
 - SR-Code verification against the university's student database
 - A way for users to view and track the status of their own submissions
