@@ -150,8 +150,6 @@ java -cp out univoice.CampusTracker
 
 ## 11. Sample Screenshots
 
-> Replace the image paths below with your actual screenshots (for example, in a `screenshots/` folder).
-
 | Home / Role Selection | Submit Feedback |
 |---|---|
 | ![Home screen](screenshots/home.png) | ![Submit feedback](screenshots/submit-feedback.png) |
