@@ -118,15 +118,20 @@ To develop a Java-based application that will centralize, organize, and streamli
 
 ```
 UniVoice/
-├── src/univoice/
-│   ├── CampusTracker.java        # main class (GUI by default, --console for text mode)
-│   ├── model/                    # Feedback (abstract), Suggestion, Complaint, Status, FeedbackFactory
-│   ├── service/                  # FeedbackManager, AuthService, Role, Session, Validator
-│   └── ui/                       # Swing GUI: LoginPanel, SubmitPanel, AdminPanel, AboutPanel, Theme, Dialogs
-├── assets/developers/            # put the developers' photos here (see README.txt inside)
-├── data/                         # feedback.txt, students.txt, removed_log.txt are created here
-├── run.sh                        # compile + run script for macOS / Linux
-└── README.md
+├── .gitignore
+├── README.md
+├── run.sh
+├── assets/developers/        (ano.jpg, cruzat.jpg, dimayacyac.jpg)
+├── data/                     (feedback.txt, students.txt, removed_log.txt are git-ignored)
+├── docs/                     (Project-Proposal.pdf, Project-Proposal(New).pdf, UML-Diagram.png)
+├── screenshots/              (7 PNG files)
+└── src/univoice/
+    ├── CampusTracker.java
+    ├── model/       Feedback, Suggestion, Complaint, Status, FeedbackFactory
+    ├── service/     FeedbackManager, AuthService, Validator, Role, Session
+    └── ui/          MainFrame, LoginPanel, SubmitPanel, AdminPanel, AboutPanel,
+                     Theme, Dialogs, Responsive, Page, WrapLayout, GridFlowLayout,
+                     WrapText, RoundedButton, RoundedPanel, ChipButton
 ```
 
 ### Run on macOS
