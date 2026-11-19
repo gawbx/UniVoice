@@ -51,23 +51,29 @@ To develop a Java-based application that will centralize, organize, and streamli
 
 | Feature | Description |
 |---|---|
-| **Role Selection and Admin Login** | At startup the system asks whether the user is an Administrator. Administrators must enter the correct password (3 attempts allowed); everyone else proceeds to the user menu. |
-| **Submit Suggestion or Complaint** | A user enters their SR-Code, selects a department (CICS, COE, CAFAD, BAET, CET, CHE), chooses Suggestion or Complaint, and types the message. Inputs are validated before saving. |
+| **Role-Based Login (landing page)** | One sign-in page for everyone. The **format of the login ID** decides the account type: an SR-Code (`25-06680`) opens the **student side only**, and an admin ID (`ADM-0001`) opens the **administrator side only**. Students create their account the first time they sign in. After 3 failed attempts, sign-in is locked for 30 seconds. |
+| **Light and Dark Modes** | Students use a light theme; administrators use a dark theme. Both follow the Batangas State University red, white, and gray palette. |
+| **Submit Suggestion or Complaint** | A signed-in student selects a department (CICS, COE, CAFAD, BAET, CET, CHE), chooses Suggestion or Complaint, and types the message. The SR-Code comes from the student's account. Inputs are validated and the student confirms before saving. |
 | **Record Keeping** | Each submission becomes a record with an auto-generated Record ID, SR-Code, department, type, message, date filed, and a default status of Pending. Records are saved to a file so data is kept between runs. |
-| **View and Search Records (Admin)** | Administrators can view all records, filter by Pending or Resolved status, or search by SR-Code. |
+| **View and Search Records (Admin)** | Administrators can view all records, filter by Pending or Resolved status, or search by SR-Code or Record ID. Record IDs, SR-Codes, departments, and types are shown in **bold**. |
 | **Update Status and Delete Records (Admin)** | Administrators can mark a record as Pending or Resolved. Only Resolved records can be deleted, and deletion requires confirmation. |
+| **Remove Troll / Spam Records (Admin)** | Administrators can remove prank, spam, or abusive submissions even while they are still Pending. They pick a reason and type the Record ID to confirm. Every removal is logged in `data/removed_log.txt` with the admin ID. |
+| **Warnings Before Risky Actions** | Logging out, exiting, submitting, clearing the form, creating an account, changing a status, deleting, and removing a record all ask for confirmation first. |
+| **About Us** | A page about UniVoice and the developers. Photos are loaded from `assets/developers/`. |
+| **Mobile View** | When the window is narrow (under 760 px), every screen switches to a compact, phone-sized layout with a menu button. Use **Mobile view** in the footer to preview it. |
 
 ### Program Flow
 
-**User flow:** Start → Ask: Administrator? (No) → Enter SR-Code → Select Department → Choose Suggestion or Complaint → Type the message → Validate input → Save record as Pending → Show Record ID → Return to start / Exit
+**Student flow:** Start → Sign in with SR-Code (first time: create password) → Select Department → Choose Suggestion or Complaint → Type the message → Validate input → Save record as Pending → Show Record ID → Return to start / Exit
 
-**Administrator flow:** Start → Ask: Administrator? (Yes) → Enter password (3 tries) → Admin Menu → View / Search records → Update status (Pending / Resolved) → Delete Resolved record → Logout → Return to start / Exit
+**Administrator flow:** Start → Sign in with admin ID and password (3 tries, then 30-second lock) → Admin Dashboard → View / Search records → Update status (Pending / Resolved) → Delete Resolved record or remove troll / spam record → Log out (confirm) → Return to start / Exit
 
 ## 7. Technologies Used
 
 - **Language:** Java
 - **Data storage:** Plain text file (file I/O)
-- **GUI:** Java Swing (custom coffee-palette theme)
+- **GUI:** Java Swing with a custom BatStateU theme (light mode for students, dark mode for administrators) and a responsive mobile layout
+- **Security:** SHA-256 password hashing (salted for student accounts)
 - **Core Java features:** `ArrayList`, arrays, `Scanner`, exception handling
 - **Version control:** Git and GitHub
 
@@ -101,7 +107,8 @@ To develop a Java-based application that will centralize, organize, and streamli
 | `Feedback` (abstract) | Base class for every submitted record | id, srCode, department, type, message, status, dateFiled | getters, `setStatus()`, `display()`, `toFileLine()` |
 | `Suggestion` / `Complaint` | Subclasses of `Feedback` for the two submission types | inherits `Feedback` attributes | `display()` and `toFileLine()` (overridden) |
 | `FeedbackManager` | Stores and manages all records, including file saving and loading | `ArrayList` of `Feedback`, nextId, data file name | `addFeedback()`, `findById()`, `listRecords()`, `updateStatus()`, `deleteRecord()`, `loadRecords()`, `saveRecords()` |
-| `CampusTracker` (main) | Runs the program: role selection, admin login, and the user and admin menu | `Scanner`, admin password, `DEPARTMENTS` array | `main()`, `adminLogin()`, `userMenu()`, `adminMenu()`, `askSRCode()`, `askDepartment()`, `askType()` |
+| `AuthService` | Signs users in and decides their role from the ID format; keeps admin accounts private and student accounts in a file | admin password hashes, student accounts, attempts left | `login()`, `registerStudent()`, `needsRegistration()`, `isLocked()` |
+| `CampusTracker` (main) | Runs the program: sign-in and the student and admin menus (GUI or console) | `Scanner`, `DEPARTMENTS` array | `main()`, `login()`, `userMenu()`, `adminMenu()`, `askDepartment()`, `askType()` |
 
 > The classes may be changed as the project is developed.
 
@@ -114,9 +121,10 @@ UniVoice/
 ├── src/univoice/
 │   ├── CampusTracker.java        # main class (GUI by default, --console for text mode)
 │   ├── model/                    # Feedback (abstract), Suggestion, Complaint, Status, FeedbackFactory
-│   ├── service/                  # FeedbackManager, AdminAuth, Validator
-│   └── ui/                       # Swing GUI in a coffee color palette
-├── data/                         # feedback.txt is created here automatically
+│   ├── service/                  # FeedbackManager, AuthService, Role, Session, Validator
+│   └── ui/                       # Swing GUI: LoginPanel, SubmitPanel, AdminPanel, AboutPanel, Theme, Dialogs
+├── assets/developers/            # put the developers' photos here (see README.txt inside)
+├── data/                         # feedback.txt, students.txt, removed_log.txt are created here
 ├── run.sh                        # compile + run script for macOS / Linux
 └── README.md
 ```
@@ -146,22 +154,38 @@ javac -d out $(find src -name "*.java")
 java -cp out univoice.CampusTracker
 ```
 
-**Admin password:** `admin123` (3 attempts). It is private inside `service/AdminAuth.java`.
+### Signing in
+
+| Account | Login ID format | Example | Password |
+|---|---|---|---|
+| Student | SR-Code: two digits, dash, five digits | `25-06680` | Chosen the first time you sign in (at least 6 characters) |
+| Administrator | `ADM-` plus four digits | `ADM-0001` | `admin123` |
+
+Students can only open the student screens and administrators can only open the admin dashboard. Admin accounts are kept private (as password hashes) inside `service/AuthService.java`.
 
 ## 11. Sample Screenshots
 
-| Home / Role Selection | Submit Feedback |
+| Sign-in (landing page) | Student home (light mode) |
 |---|---|
-| ![Home screen](screenshots/home.png) | ![Submit feedback](screenshots/submit-feedback.png) |
+| ![Sign-in](screenshots/login.png) | ![Student home](screenshots/student-home.png) |
 
-| Admin Menu | View / Search Records |
+| Admin dashboard (dark mode) | Removing a troll complaint |
 |---|---|
-| ![Admin menu](screenshots/admin-menu.png) | ![View records](screenshots/view-records.png) |
+| ![Admin dashboard](screenshots/admin-dashboard.png) | ![Troll removal](screenshots/troll-removal.png) |
+
+| About us | Log-out warning |
+|---|---|
+| ![About us](screenshots/about-us.png) | ![Log-out warning](screenshots/logout-warning.png) |
+
+**Mobile view**
+
+![Mobile view](screenshots/mobile-view.png)
 
 ## 12. Known Limitations
 
-- The system is a desktop app (Java Swing GUI plus a console mode). It has no web or mobile interface.
-- There is a single shared administrator password. Individual admin accounts and password changes are not supported.
+- The system is a desktop app (Java Swing GUI plus a console mode). Mobile view is a compact layout for narrow windows, not a separate Android or iOS app.
+- Admin accounts are set in the code. Adding admins or changing passwords from inside the app is not supported.
+- Student accounts are created on first sign-in. Forgotten student passwords can't be reset in the app.
 - SR-Codes are checked for format only, not verified against the university's student database.
 - Users cannot view, edit, or track the status of their own submissions. They only receive a Record ID.
 - No email or SMS notifications are sent when a record is resolved.
@@ -172,7 +196,7 @@ java -cp out univoice.CampusTracker
 ## 13. Future Improvements
 
 - Web or mobile version
-- Individual admin accounts with changeable passwords
+- Admin account management and password reset from inside the app
 - SR-Code verification against the university's student database
 - A way for users to view and track the status of their own submissions
 - Email or SMS notifications when a record is resolved
